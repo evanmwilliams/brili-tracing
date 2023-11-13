@@ -5,23 +5,20 @@ import sys
 
 def stitch_trace(blocks, trace):
     for block in blocks:
-        try:
-            insert_idx = next(
-                i for i, v in enumerate(block.instrs) if v.get("label") == "entry"
-            )
+        insert_idx = next(
+            i for i, v in enumerate(block.instrs) if v.get("label") == "entry"
+        )
+        insert_idx += 1
+        block.instrs.insert(insert_idx, {"op": "speculate"})
+        for instr in trace:
             insert_idx += 1
-            block.instrs.insert(insert_idx, {"op": "speculate"})
-            for instr in trace:
-                insert_idx += 1
-                block.instrs.insert(insert_idx, instr)
-            block.instrs.insert(insert_idx + 1, {"op": "commit"})
-            block.instrs.insert(
-                insert_idx + 2,
-                {"args": [], "op": "ret"},
-            )
-            block.instrs.insert(insert_idx + 3, {"label": "failed"})
-        except StopIteration:
-            pass
+            block.instrs.insert(insert_idx, instr)
+        block.instrs.insert(insert_idx + 1, {"op": "commit"})
+        block.instrs.insert(
+            insert_idx + 2,
+            {"args": [], "op": "ret"},
+        )
+        block.instrs.insert(insert_idx + 3, {"label": "failed"})
 
     return blocks
 
